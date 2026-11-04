@@ -127,29 +127,31 @@ int main(void) {
     char userChoice;
     char userEquation[256];
 
-    printf(" *** TEXT TO LATEX BY METS, version:0.1 ***\n1) convert to latex\n2) quit\n");
-    scanf(" %c", &userChoice);
-    while (getchar() != '\n');
+    while (1) {
+        printf(" *** TEXT TO LATEX BY METS, version:0.2 ***\n1) convert to latex\n2) quit\n");
+        scanf(" %c", &userChoice);
+        while (getchar() != '\n');
 
-    switch (userChoice) {
-        case '2': return 0;
-        case '1':
-            printf("Enter your equation: ");
-            fgets(userEquation, sizeof(userEquation), stdin);
-            Token tokens[100];
+        switch (userChoice) {
+            case '2': return 0;
+            case '1':
+                printf("Enter your equation: ");
+                fgets(userEquation, sizeof(userEquation), stdin);
+                Token tokens[100];
 
-            int count = tokenize(userEquation, tokens);
-            if (count == -1) return 1;
-            if (checkParenthesis(tokens) != 1) {
-                printf("Invalid input: Check parenthesis!");
-                return 1;
-            }
-            for (int i = 0; i < count; i++) {
-                printf("kind=%d text='%s'\n", tokens[i].kind, tokens[i].text);
-            }
-            printLatex(tokens, count);
-            break;
-        default: printf("Invalid command.\n");
-            break;
+                int count = tokenize(userEquation, tokens);
+                if (count == -1) return 1;
+                if (checkParenthesis(tokens) != 1) {
+                    printf("Invalid input: Check parenthesis!");
+                    return 1;
+                }
+                /*for (int i = 0; i < count; i++) {
+                    printf("kind=%d text='%s'\n", tokens[i].kind, tokens[i].text);
+                }*/
+                printLatex(tokens, count);
+                break;
+            default: printf("Invalid command.\n");
+                break;
+        }
     }
 }
