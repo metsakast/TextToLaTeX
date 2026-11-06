@@ -3,17 +3,17 @@
 #include <string.h>
 
 typedef enum {
-    TKN_NUMBER, // 6, 15, 12.5
-    TKN_IDENTIFIER, // b, ac, sqrt
-    TKN_OPERATOR, // + - * / ^ =
-    TKN_LPAREN, // (
-    TKN_RPAREN, // )
-    TKN_END // marks the end
+    TKN_NUMBER,         // 6, 15, 12.5
+    TKN_IDENTIFIER,     // b, ac, sqrt
+    TKN_OPERATOR,       // + - * / ^ =
+    TKN_LPAREN,         // (
+    TKN_RPAREN,         // )
+    TKN_END             // marks the end
 } TokenType;
 
 typedef struct {
-    TokenType kind; // what token kind
-    char text[32]; // the characters themselves
+    TokenType kind;     // what token kind
+    char text[32];      // the characters themselves
 } Token;
 
 int tokenize(const char *equation, Token tokens[]) {
@@ -73,44 +73,43 @@ int tokenize(const char *equation, Token tokens[]) {
     return count;
 }
 
-void printLatex(Token tokens[], int count) {
-    printf("$");
-
-    for (int i = 0; tokens[i].kind != TKN_END; i++) {
+void printTokens(Token tokens[], int start, int end) {
+    for (int i = start; i < end; i++) {
         Token t = tokens[i];
 
         if (t.kind == TKN_OPERATOR && t.text[0] == '*') printf(" \\cdot ");
         else if (t.kind == TKN_OPERATOR && t.text[0] == '^') {
             printf("^{");
-            int j = ++i;
+            i++;
 
-            if (tokens[j].kind == TKN_LPAREN) {
-                int depth = 1;
-                j++;
-
-                while (tokens[j].kind != TKN_END) {
+            if (i < end && tokens[i].kind == TKN_LPAREN) {
+                int depth  = 1;
+                int j = i + 1;
+                while (j < end) {                        // find the matching ')'
                     if (tokens[j].kind == TKN_LPAREN) depth++;
-                    if (tokens[j].kind == TKN_RPAREN) depth--;
+                    else if (tokens[j].kind == TKN_RPAREN) depth--;
                     if (depth == 0) break;
-                    printf("%s", tokens[j].text);
                     j++;
                 }
-                i = j;
-            } else printf("%s", tokens[i].text);
+                printTokens(tokens, i + 1, j);  // call the function again, print items inside parenthesis
+                i = j;                                   // skip past the ')'
+            }
+            else if (i < end) {
+                printf("%s", tokens[i].text);      // if the exponent is a single token
+            }
             printf("}");
         }
-        else if (t.kind == TKN_OPERATOR && t.text[0] == '+') printf("+");
-        else if (t.kind == TKN_OPERATOR && t.text[0] == '-') printf("-");
-        else if (t.kind == TKN_OPERATOR && t.text[0] == '/') printf("/");
-        else {
-            printf("%s", t.text); // dont change for now
-        }
+        else printf("%s", t.text);                 // tokens which remain identical in latex, + - numbers, identifiers, parenthesis
     }
-    printf("$");
-    printf("\n");
 }
 
-int checkParenthesis(Token tokens[]) {  // check that parenthesis are valid beforehand
+void printLatex(Token tokens[], int count) {
+    printf("$");
+    printTokens(tokens, 0, count - 1);          // count includes TKN_END
+    printf("$\n");
+}
+
+int checkParenthesis(Token tokens[]) {                   // check that parenthesis are valid beforehand
     int depth = 0;
     for (int i = 0; tokens[i].kind != TKN_END; i++) {
         if (tokens[i].kind == TKN_LPAREN) depth++;
